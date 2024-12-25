@@ -9,7 +9,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<any[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null); // Reference to the bottom of the messages container
+  const messagesStartRef = useRef<HTMLDivElement>(null); // Reference to the top of the messages container
 
   const joinChat = async () => {
     const res = await fetch('/api/join', {
@@ -54,9 +54,9 @@ export default function Chat() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    // Scroll to the bottom of the messages container whenever new messages are added
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    // Scroll to the top of the messages container whenever new messages are added
+    if (messagesStartRef.current) {
+      messagesStartRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
@@ -93,7 +93,8 @@ export default function Chat() {
         </div>
       ) : (
         <div className="flex flex-col h-full">
-          <div className="flex-1 overflow-y-auto space-y-2 p-4 border rounded">
+          <div className="flex-1 overflow-y-auto flex flex-col-reverse space-y-2 space-y-reverse p-4 border rounded">
+            <div ref={messagesStartRef} /> {/* This ensures scrolling to the top */}
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -110,24 +111,24 @@ export default function Chat() {
                 </div>
               </div>
             ))}
-            <div ref={messagesEndRef} /> {/* This ensures scrolling to the bottom */}
           </div>
-          <div className="flex gap-2 p-2 border-t">
-            <input
-              type="text"
-              placeholder="Type your message"
-              className="flex-1 p-2 border rounded"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-            />
-            <button
-              onClick={sendMessage}
-              className="px-4 py-2 bg-blue-500 text-white rounded"
-            >
-              Send
-            </button>
-          </div>
+          <div className="flex gap-2 p-4 border-t mb-4">
+  <input
+    type="text"
+    placeholder="Type your message"
+    className="flex-1 p-2 border rounded"
+    value={message}
+    onChange={(e) => setMessage(e.target.value)}
+    onKeyPress={handleKeyPress}
+  />
+  <button
+    onClick={sendMessage}
+    className="px-4 py-2 bg-blue-500 text-white rounded"
+  >
+    Send
+  </button>
+</div>
+
         </div>
       )}
     </main>
