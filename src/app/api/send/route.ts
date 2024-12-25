@@ -1,17 +1,18 @@
 import { NextResponse } from 'next/server';
-import { messages } from '../messages/store';
+import { addMessage } from '../messages/store';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
   const { message, sender } = await req.json();
   
-  if (message && sender) {
-    messages.push({
+  if (message) {
+    const newMessage = {
       id: crypto.randomBytes(16).toString('hex'),
       sender,
       message,
       timestamp: new Date()
-    });
+    };
+    addMessage(newMessage);
     return NextResponse.json({ status: 'success' });
   }
   

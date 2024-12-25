@@ -1,7 +1,6 @@
-// src/app/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function Chat() {
   const [username, setUsername] = useState('');
@@ -9,6 +8,8 @@ export default function Chat() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null); // Reference to the bottom of the messages container
 
   const joinChat = async () => {
     const res = await fetch('/api/join', {
@@ -52,13 +53,20 @@ export default function Chat() {
     }
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    // Scroll to the bottom of the messages container whenever new messages are added
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
   const formatTime = (date: string) => {
     const d = new Date(date);
     return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   };
 
   return (
-    <main className="max-w-2xl mx-auto p-4">
+    <main className="max-w-2xl mx-auto p-4 flex flex-col h-screen">
       {!isAuthenticated ? (
         <div className="space-y-4">
           <h1 className="text-2xl font-bold">Join Chat</h1>
@@ -84,8 +92,8 @@ export default function Chat() {
           </button>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="h-[60vh] overflow-y-auto space-y-2 p-4 border rounded">
+        <div className="flex flex-col h-full">
+          <div className="flex-1 overflow-y-auto space-y-2 p-4 border rounded">
             {messages.map((msg) => (
               <div
                 key={msg.id}
@@ -102,8 +110,9 @@ export default function Chat() {
                 </div>
               </div>
             ))}
+            <div ref={messagesEndRef} /> {/* This ensures scrolling to the bottom */}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 p-2 border-t">
             <input
               type="text"
               placeholder="Type your message"
