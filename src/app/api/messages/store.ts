@@ -18,6 +18,6 @@ export function addMessage(message: Message) {
   // cleanupMessages();
 }
 
-setInterval(() => {
-  cleanupMessages();
-}, 300000);
+// setInterval(() => {
+//   cleanupMessages();
+// }, 300000);
