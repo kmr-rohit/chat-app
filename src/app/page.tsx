@@ -9,7 +9,7 @@ export default function Chat() {
   const [messages, setMessages] = useState<any[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
 
   const joinChat = async () => {
     const res = await fetch('/api/join', {
@@ -61,8 +61,8 @@ export default function Chat() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }, [messages]);
 
@@ -110,11 +110,12 @@ export default function Chat() {
               </button>
             )}
           </div>
-          <div className="flex-1 overflow-y-auto space-y-2 p-4 border rounded">
-            {messages.map((msg) => (
+          <div className="flex-1 overflow-y-auto p-4 border rounded">
+            {messages.map((msg, index) => (
               <div
                 key={msg.id}
-                className={`p-3 rounded-lg ${
+                ref={index === messages.length - 1 ? lastMessageRef : null}
+                className={`p-3 m-1 rounded-lg ${
                   msg.sender === username
                     ? 'bg-blue-100 ml-auto'
                     : 'bg-gray-100'
@@ -126,7 +127,6 @@ export default function Chat() {
                 </div>
               </div>
             ))}
-            <div ref={messagesEndRef} />
           </div>
           <div className="flex gap-2 p-2 border-t">
             <input
