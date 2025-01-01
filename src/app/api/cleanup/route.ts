@@ -1,7 +1,8 @@
 // app/api/cleanup/route.ts
-import { cleanupMessages } from '../messages/store';
+import { connectToDatabase } from '../utils/mongodb';
 
 export async function POST() {
-  cleanupMessages();
+  const { db } = await connectToDatabase();
+  await db.collection('messages').deleteMany({});
   return Response.json({ success: true });
 }

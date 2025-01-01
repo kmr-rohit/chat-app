@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
-import { activeMessages } from './store';
+import { connectToDatabase } from '../utils/mongodb';
 
 export async function GET() {
-  return NextResponse.json(activeMessages);
+  const { db } = await connectToDatabase();
+  // console.log('db', db);
+  const messages = await db.collection('messages').find({}).toArray();
+  return NextResponse.json(messages);
 }

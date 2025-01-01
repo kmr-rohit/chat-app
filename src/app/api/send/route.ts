@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { addMessage } from '../messages/store';
+import { connectToDatabase } from '../utils/mongodb';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
@@ -12,7 +12,10 @@ export async function POST(req: Request) {
       message,
       timestamp: new Date()
     };
-    addMessage(newMessage);
+
+    const { db } = await connectToDatabase();
+    await db.collection('messages').insertOne(newMessage);
+
     return NextResponse.json({ status: 'success' });
   }
   
