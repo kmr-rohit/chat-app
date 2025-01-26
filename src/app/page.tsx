@@ -8,8 +8,10 @@ export default function Chat() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
 
   const lastMessageRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const joinChat = async () => {
     const res = await fetch('/api/join', {
@@ -60,11 +62,21 @@ export default function Chat() {
     }
   }, [isAuthenticated]);
 
+  // Add this new function to handle scroll events
+  const handleScroll = () => {
+    if (!chatContainerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 50;
+    
+    setIsUserScrolling(!isAtBottom);
+  };
+
   useEffect(() => {
-    if (lastMessageRef.current) {
+    if (lastMessageRef.current && !isUserScrolling) {
       lastMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-  }, [messages]);
+  }, [messages, isUserScrolling]);;
 
   const formatTime = (date: string) => {
     const d = new Date(date);
@@ -110,7 +122,11 @@ export default function Chat() {
               </button>
             )}
           </div>
-          <div className="flex-1 overflow-y-auto p-4 border rounded">
+          <div 
+            ref={chatContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 overflow-y-auto p-4 border rounded"
+          >
             {messages.map((msg, index) => (
               <div
                 key={msg.id}
