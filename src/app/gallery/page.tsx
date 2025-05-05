@@ -15,7 +15,7 @@ export default function Gallery() {
   const [passcodeOk, setPasscodeOk] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewIndex, setPreviewIndex] = useState(0);
+  const [previewFile, setPreviewFile] = useState<any>(null);
 
   // Appwrite client setup
   const client = new Client();
@@ -74,7 +74,7 @@ export default function Gallery() {
 
   // Preview logic
   function openPreview(idx: number) {
-    setPreviewIndex(idx);
+    setPreviewFile(files[idx]);
     setPreviewOpen(true);
   }
 
@@ -132,30 +132,29 @@ export default function Gallery() {
           </div>
         ))}
       </div>
-      {/* Preview Modal/Carousel */}
+      {/* Preview Modal */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-2xl">
-          <Carousel selectedIndex={previewIndex} onSelect={setPreviewIndex} className="w-full">
-            {files.map((file: any, idx: number) => (
-              <CarouselItem key={file.$id}>
-                {file.mimeType.startsWith("image") ? (
-                  <img
-                    src={`https://fra.cloud.appwrite.io/v1/storage/buckets/${APPWRITE_BUCKET}/files/${file.$id}/view?project=${APPWRITE_PROJECT}`}
-                    alt={file.name}
-                    className="w-full max-h-[70vh] object-contain rounded"
-                  />
-                ) : file.mimeType.startsWith("video") ? (
-                  <video
-                    src={`https://fra.cloud.appwrite.io/v1/storage/buckets/${APPWRITE_BUCKET}/files/${file.$id}/view?project=${APPWRITE_PROJECT}`}
-                    controls
-                    className="w-full max-h-[70vh] object-contain rounded"
-                  />
-                ) : (
-                  <div className="text-xs text-gray-500">{file.name}</div>
-                )}
-              </CarouselItem>
-            ))}
-          </Carousel>
+          {previewFile && (
+            <div className="w-full flex justify-center">
+              {previewFile.mimeType.startsWith("image") ? (
+                <img
+                  src={`https://fra.cloud.appwrite.io/v1/storage/buckets/${APPWRITE_BUCKET}/files/${previewFile.$id}/view?project=${APPWRITE_PROJECT}`}
+                  alt={previewFile.name}
+                  className="w-full max-h-[70vh] object-contain rounded"
+                />
+              ) : previewFile.mimeType.startsWith("video") ? (
+                <video
+                  src={`https://fra.cloud.appwrite.io/v1/storage/buckets/${APPWRITE_BUCKET}/files/${previewFile.$id}/view?project=${APPWRITE_PROJECT}`}
+                  controls
+                  autoPlay
+                  className="w-full max-h-[70vh] object-contain rounded"
+                />
+              ) : (
+                <div className="text-xs text-gray-500">{previewFile.name}</div>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

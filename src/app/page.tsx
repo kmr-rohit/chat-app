@@ -26,16 +26,17 @@ export default function Chat() {
 
   // Media preview modal state
   const [mediaPreviewOpen, setMediaPreviewOpen] = useState(false);
-  const [mediaPreviewIndex, setMediaPreviewIndex] = useState(0);
-  // Get all media messages (image/video)
-  const mediaMessages = messages
-    .map((msg, idx) => ({ ...msg, _idx: idx }))
-    .filter(msg => msg.type === 'image-message' || msg.type === 'video-message');
+  const [previewMedia, setPreviewMedia] = useState<{ url: string, type: string } | null>(null);
+  
   function openMediaPreview(msgIdx: number) {
-    // Find the index of this media message in the filtered list
-    const previewIdx = mediaMessages.findIndex(m => m._idx === msgIdx);
-    setMediaPreviewIndex(previewIdx >= 0 ? previewIdx : 0);
-    setMediaPreviewOpen(true);
+    const msg = messages[msgIdx];
+    if (msg && (msg.type === 'image-message' || msg.type === 'video-message') && msg.url) {
+      setPreviewMedia({
+        url: msg.url,
+        type: msg.type
+      });
+      setMediaPreviewOpen(true);
+    }
   }
 
   // Appwrite config
@@ -281,25 +282,16 @@ export default function Chat() {
       {/* Media preview modal */}
       <Dialog open={mediaPreviewOpen} onOpenChange={setMediaPreviewOpen}>
         <DialogContent className="max-w-2xl">
-          <Carousel
-            className="w-full"
-            setApi={(api) => {
-              if (api && mediaPreviewOpen) {
-                api.scrollTo(mediaPreviewIndex);
-              }
-            }}
-          >
-            {mediaMessages.map((msg, idx) => (
-              <CarouselItem key={msg.id || idx}>
-                {msg.type === 'image-message' && msg.url && (
-                  <img src={msg.url} alt="media" className="w-full max-h-[70vh] object-contain rounded" />
-                )}
-                {msg.type === 'video-message' && msg.url && (
-                  <video src={msg.url} className="w-full max-h-[70vh] object-contain rounded" controls />
-                )}
-              </CarouselItem>
-            ))}
-          </Carousel>
+          {previewMedia && (
+            <div className="w-full flex justify-center">
+              {previewMedia.type === 'image-message' && (
+                <img src={previewMedia.url} alt="media" className="w-full max-h-[70vh] object-contain rounded" />
+              )}
+              {previewMedia.type === 'video-message' && (
+                <video src={previewMedia.url} className="w-full max-h-[70vh] object-contain rounded" controls autoPlay />
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </main>
