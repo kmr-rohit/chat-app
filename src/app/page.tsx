@@ -146,11 +146,21 @@ export default function Chat() {
     }
   }, [isAuthenticated]);
 
+  // Add this new function to handle scroll events
+  const handleScroll = () => {
+    if (!chatContainerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) < 50;
+    
+    setIsUserScrolling(!isAtBottom);
+  };
+
   useEffect(() => {
-    if (lastMessageRef.current) {
+    if (lastMessageRef.current && !isUserScrolling) {
       lastMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-  }, [messages]);
+  }, [messages, isUserScrolling]);;
 
   const formatTime = (date: string) => {
     const d = new Date(date);
