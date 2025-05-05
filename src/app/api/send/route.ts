@@ -3,15 +3,17 @@ import { connectToDatabase } from '../utils/mongodb';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
-  const { message, sender } = await req.json();
+  const { message, sender, type, url } = await req.json();
   
-  if (message) {
-    const newMessage = {
+  if (message || ((type === 'image-message' || type === 'video-message') && url)) {
+    const newMessage: any = {
       id: crypto.randomBytes(16).toString('hex'),
       sender,
-      message,
-      timestamp: new Date()
+      message: message || '',
+      timestamp: new Date(),
     };
+    if (type) newMessage.type = type;
+    if (url) newMessage.url = url;
 
     const { db } = await connectToDatabase();
     await db.collection('messages').insertOne(newMessage);

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { MobileSidebar } from "@/components/MobileSidebar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,11 +24,29 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        {children}
+        <div className="flex min-h-screen">
+          {/* Desktop Sidebar - hidden on mobile */}
+          <aside className="hidden md:flex w-56 bg-card border-r border-border shadow-sm flex-col">
+            <div className="font-bold text-lg p-4 border-b border-border">Chat App</div>
+            <nav className="flex-1 flex flex-col gap-2 p-4">
+              <a href="/" className="px-3 py-2 rounded hover:bg-muted transition">Chat</a>
+              <a href="/gallery" className="px-3 py-2 rounded hover:bg-muted transition">Gallery</a>
+              <a href="/upload" className="px-3 py-2 rounded hover:bg-muted transition">Upload</a>
+            </nav>
+          </aside>
+          <div className="flex-1 flex flex-col">
+            {/* Mobile Header with Sidebar Button */}
+            <header className="md:hidden flex items-center p-4 border-b border-border bg-card">
+              <MobileSidebar />
+              <div className="font-bold text-lg ml-3">Chat App</div>
+            </header>
+            <main className="flex-1">{children}</main>
+          </div>
+        </div>
       </body>
     </html>
   );

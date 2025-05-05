@@ -5,7 +5,7 @@ interface Message {
   id: string;
 }
 
-export const KEYWORD = "troitroi";
+export const KEYWORD = "Troitroi1020";
 export let activeMessages: Message[] = [];
 
 
