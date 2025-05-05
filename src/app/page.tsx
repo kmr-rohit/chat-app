@@ -21,6 +21,8 @@ export default function Chat() {
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null);
 
   const lastMessageRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
 
   // Media preview modal state
   const [mediaPreviewOpen, setMediaPreviewOpen] = useState(false);
@@ -201,7 +203,11 @@ export default function Chat() {
               </button>
             )}
           </div>
-          <div className="flex-1 overflow-y-auto p-4 border rounded bg-gray-900">
+          <div
+            ref={chatContainerRef}
+            className="flex-1 overflow-y-auto p-4 border rounded bg-gray-900"
+            onScroll={handleScroll}
+          >
             {messages.map((msg, index) => (
               <div
                 key={msg.id}
