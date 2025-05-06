@@ -14,6 +14,9 @@ export default function Chat() {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [notifying, setNotifying] = useState(false);
+  const [notificationSent, setNotificationSent] = useState(false);
+  const [notificationTime, setNotificationTime] = useState<string | null>(null);
 
   // Media upload state
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -170,6 +173,37 @@ export default function Chat() {
     return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
   };
 
+  // Send notification to Rohit
+  const sendNotification = async () => {
+    if (!username) return;
+    
+    setNotifying(true);
+    try {
+      const res = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          sender: username,
+          message: 'is waiting for you in the chat!' 
+        })
+      });
+      
+      if (res.ok) {
+        setNotificationSent(true);
+        const now = new Date();
+        setNotificationTime(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
+        // Reset after 5 minutes
+        setTimeout(() => {
+          setNotificationSent(false);
+          setNotificationTime(null);
+        }, 300000); // 5 minutes
+      }
+    } catch (error) {
+      console.error('Failed to send notification:', error);
+    }
+    setNotifying(false);
+  };
+
   return (
     <main className="max-w-2xl mx-auto p-4 flex flex-col h-screen">
       {!isAuthenticated ? (
@@ -195,14 +229,36 @@ export default function Chat() {
         <div className="flex flex-col h-[98%]">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Chat Room</h2>
-            {username === 'Rohit' && (
-              <button
-                onClick={cleanupMessages}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-              >
-                Clear Chat
-              </button>
-            )}
+            <div className="flex gap-2">
+              {/* Notification button - only visible for non-Rohit users */}
+              {username !== 'Rohit' && (
+                <div className="flex items-center">
+                  {notificationSent ? (
+                    <span className="text-xs text-green-400 mr-2">
+                      Notification sent at {notificationTime}
+                    </span>
+                  ) : null}
+                  <Button
+                    onClick={sendNotification}
+                    disabled={notifying || notificationSent}
+                    className={`${notifying ? 'bg-gray-500' : notificationSent ? 'bg-green-600' : 'bg-blue-600'} text-white`}
+                    size="sm"
+                  >
+                    {notifying ? 'Sending...' : notificationSent ? 'Notified' : 'Notify Rohit'}
+                  </Button>
+                </div>
+              )}
+              
+              {/* Admin clear chat button */}
+              {username === 'Rohit' && (
+                <button
+                  onClick={cleanupMessages}
+                  className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                >
+                  Clear Chat
+                </button>
+              )}
+            </div>
           </div>
           <div
             ref={chatContainerRef}
