@@ -99,6 +99,20 @@ export default function Gallery() {
           <Button variant="destructive" onClick={handleDelete} disabled={loading}>
             Delete Selected ({selected.length})
           </Button>
+          {/* Download selected media button */}
+          <Button variant="secondary" onClick={() => {
+            files.filter(f => selected.includes(f.$id)).forEach(f => {
+              const url = `https://fra.cloud.appwrite.io/v1/storage/buckets/${APPWRITE_BUCKET}/files/${f.$id}/view?project=${APPWRITE_PROJECT}`;
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = f.name;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            });
+          }} disabled={loading || !selected.length}>
+            Download Selected ({selected.length})
+          </Button>
           <Button variant="outline" onClick={clearSelection}>Cancel</Button>
         </div>
       )}
@@ -136,7 +150,7 @@ export default function Gallery() {
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-2xl">
           {previewFile && (
-            <div className="w-full flex justify-center">
+            <div className="w-full flex flex-col items-center gap-2">
               {previewFile.mimeType.startsWith("image") ? (
                 <img
                   src={`https://fra.cloud.appwrite.io/v1/storage/buckets/${APPWRITE_BUCKET}/files/${previewFile.$id}/view?project=${APPWRITE_PROJECT}`}
@@ -153,6 +167,14 @@ export default function Gallery() {
               ) : (
                 <div className="text-xs text-gray-500">{previewFile.name}</div>
               )}
+              {/* Download button for previewed file */}
+              <a href={`https://fra.cloud.appwrite.io/v1/storage/buckets/${APPWRITE_BUCKET}/files/${previewFile.$id}/view?project=${APPWRITE_PROJECT}`}
+                 download={previewFile.name}
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 className="mt-2 px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">
+                Download
+              </a>
             </div>
           )}
         </DialogContent>
