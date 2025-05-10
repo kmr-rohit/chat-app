@@ -191,7 +191,7 @@ export default function Chat() {
     if (lastMessageRef.current && !isUserScrolling) {
       lastMessageRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-  }, [messages, isUserScrolling]);;
+  }, [messages, isUserScrolling]);
 
   const formatTime = (date: string) => {
     const d = new Date(date);
@@ -286,7 +286,7 @@ export default function Chat() {
             </div>
           </div>
           {/* Chat scrollable message area */}
-          <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 border rounded bg-gray-100 dark:bg-gray-900">
+          <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 border rounded bg-gray-100 dark:bg-gray-900" onScroll={handleScroll}>
             {messages.map((msg, index) => {
   const isUser = msg.sender === username;
   // Remove initials, use default avatar icon
