@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChatInput } from '@/components/ui/ChatInput';
 import { Client, Storage, ID } from 'appwrite';
-import { FaUser, FaEye, FaCheckDouble } from 'react-icons/fa';
+import { FaUser } from 'react-icons/fa';
 
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Carousel, CarouselItem } from '@/components/ui/carousel';
@@ -31,41 +31,6 @@ export default function Chat() {
   // Media preview modal state
   const [mediaPreviewOpen, setMediaPreviewOpen] = useState(false);
   const [previewMedia, setPreviewMedia] = useState<{ url: string, type: string } | null>(null);
-
-  // WhatsApp-style seen/delivered indicator state
-  const [lastSeenTimestamp, setLastSeenTimestamp] = useState<string | null>(null);
-
-  // Helper: get chat key for localStorage (per user)
-  const getSeenKey = () => `chat_seen_${username}`;
-
-  // On mount or username change, load last seen timestamp
-  useEffect(() => {
-    if (!username) return;
-    const lastSeen = localStorage.getItem(getSeenKey());
-    setLastSeenTimestamp(lastSeen || null);
-  }, [username]);
-
-  // When messages change and user is active, update last seen
-  useEffect(() => {
-    if (!username || !messages.length) return;
-    // Find last message from opposite sender
-    const lastOppMsg = [...messages].reverse().find(msg => msg.sender !== username);
-    if (lastOppMsg) {
-      localStorage.setItem(getSeenKey(), lastOppMsg.timestamp);
-      setLastSeenTimestamp(lastOppMsg.timestamp);
-    }
-  }, [messages, username]);
-  
-  function openMediaPreview(msgIdx: number) {
-    const msg = messages[msgIdx];
-    if (msg && (msg.type === 'image-message' || msg.type === 'video-message') && msg.url) {
-      setPreviewMedia({
-        url: msg.url,
-        type: msg.type
-      });
-      setMediaPreviewOpen(true);
-    }
-  }
 
   // Appwrite config
   const APPWRITE_ENDPOINT = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT || "https://fra.cloud.appwrite.io/v1";
@@ -129,14 +94,33 @@ export default function Chat() {
   }
 
   const joinChat = async () => {
-    const res = await fetch('/api/join', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ keyword })
-    });
-    
-    if (res.ok) {
-      setIsAuthenticated(true);
+    // Validate inputs
+    if (!keyword.trim()) {
+      alert('Please enter a keyword');
+      return;
+    }
+    if (!username.trim()) {
+      alert('Please enter your name');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyword })
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        setIsAuthenticated(true);
+      } else {
+        alert(data.message || 'Failed to join chat');
+      }
+    } catch (error) {
+      console.error('Error joining chat:', error);
+      alert('Failed to connect to server');
     }
   };
 
@@ -229,6 +213,17 @@ export default function Chat() {
     setNotifying(false);
   };
 
+  function openMediaPreview(msgIdx: number) {
+    const msg = messages[msgIdx];
+    if (msg && (msg.type === 'image-message' || msg.type === 'video-message') && msg.url) {
+      setPreviewMedia({
+        url: msg.url,
+        type: msg.type
+      });
+      setMediaPreviewOpen(true);
+    }
+  }
+
   return (
     <main className="max-w-2xl mx-auto p-4 flex flex-col h-screen">
       {!isAuthenticated ? (
@@ -289,7 +284,6 @@ export default function Chat() {
           <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 border rounded bg-gray-100 dark:bg-gray-900" onScroll={handleScroll}>
             {messages.map((msg, index) => {
   const isUser = msg.sender === username;
-  // Remove initials, use default avatar icon
   return (
     <div key={msg.id || index} className={`flex flex-col mb-3 ${isUser ? 'items-end' : 'items-start'}`} ref={index === messages.length - 1 ? lastMessageRef : null}>
       <div className={`flex items-end ${isUser ? 'justify-end' : 'justify-start'} w-full`}>
@@ -331,6 +325,10 @@ export default function Chat() {
               onClick={() => openMediaPreview(index)}
             />
           )}
+          {/* Timestamp */}
+          <div className={`text-xs mt-1 ${isUser ? 'text-blue-200' : 'text-gray-500'}`}>
+            {formatTime(msg.timestamp)}
+          </div>
         </div>
         {/* Avatar for sender (right) */}
         {isUser && (
@@ -342,16 +340,6 @@ export default function Chat() {
           </div>
         )}
       </div>
-      {/* Seen/Delivered icon OUTSIDE and just below the message bubble for sender only */}
-      {isUser && (
-        <div className="flex justify-end w-full mt-1">
-          {lastSeenTimestamp && msg.timestamp <= lastSeenTimestamp ? (
-            <FaEye className="w-3 h-3 text-blue-300" title="Seen" />
-          ) : (
-            <FaCheckDouble className="w-3 h-3 text-gray-300" title="Delivered" />
-          )}
-        </div>
-      )}
     </div>
   );
 })}
